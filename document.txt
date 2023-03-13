@@ -1,2 +1,3 @@
 game là dễ
 Nhưng mà cũng hơi khoai
+commit: Lưu lại trạng thái của index
