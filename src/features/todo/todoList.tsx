@@ -23,6 +23,8 @@ function Home() {
   const dispatch = useAppDispatch()
   const todos = useAppSelector((state: RootState) => state.todo.todos)
   const [title, setTitle] = useState("")
+  console.log(todos);
+  
 
   useEffect(() => {
     dispatch(fetchTodos())
@@ -39,6 +41,7 @@ function Home() {
   const handleDeleteTodo = (_id: string) => {
     dispatch(deleteTodo(_id))
   }
+
 
   return (
     <div className=" h-screen container mx-auto p-4">

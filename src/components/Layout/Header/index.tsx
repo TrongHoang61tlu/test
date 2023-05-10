@@ -1,24 +1,14 @@
 import { Link, useNavigate } from "react-router-dom"
-import { RootState } from "../../../app/store"
-import { useAppDispatch, useAppSelector } from "../../../app/hooks"
-import  { logout } from "../../../features/auth/authSlice"
-import React from "react"
+import { useAppDispatch } from "../../../app/hooks"
+import { logout } from "../../../features/auth/authSlice"
 const Header = () => {
   const dispatch = useAppDispatch()
   const history = useNavigate()
-  const isAuthenticated = useAppSelector(
-    (state: RootState) => state.auth.isAuthenticated,
-  )
-  const token = localStorage.getItem('accessToken')
+  const token = localStorage.getItem("accessToken")
 
   const handleLogout = () => {
-    dispatch(logout())
+    dispatch(logout({ callback: () => history("/login") }))
   }
-  React.useEffect(() => {
-    if (isAuthenticated === false) {
-      history("/login")
-    }
-  }, [isAuthenticated])
   return (
     <header className="flex items-center justify-between px-4 py-2 bg-gray-800 text-white">
       <Link to="/">

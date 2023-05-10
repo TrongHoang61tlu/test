@@ -1,13 +1,12 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import axios from "axios"
 
 interface AuthState {
-  token: string | null
+  token: string
   loading: boolean
   error: null | string
   user: UserCredentials
   successMessage: null | string
-  isAuthenticated: boolean
 }
 
 interface UserCredentials {
@@ -17,23 +16,28 @@ interface UserCredentials {
 }
 
 const initialState: AuthState = {
-  token: null,
+  token: "",
   loading: false,
   error: null,
   user: {
-    username: '',
-    password: '',
-    token: null
+    username: "",
+    password: "",
+    token: null,
   },
   successMessage: null,
-  isAuthenticated: false
 }
 
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
-  async (data: UserCredentials, { rejectWithValue }) => {
+  async (
+    { username, password }: { username: string; password: string },
+    { rejectWithValue },
+  ) => {
     try {
-      const response = await axios.post("http://192.168.1.35:3001/user", data)
+      const response = await axios.post("http://192.168.1.35:3001/user", {
+        username,
+        password,
+      })
       return response.data.token
     } catch (err: any) {
       return rejectWithValue(err.response.data)
@@ -43,7 +47,15 @@ export const registerUser = createAsyncThunk(
 
 export const login = createAsyncThunk(
   "auth/login",
-  async ({ username, password }: { username: string; password: string }) => {
+  async ({
+    username,
+    password,
+    callback,
+  }: {
+    username: string
+    password: string
+    callback: () => void
+  }) => {
     try {
       const response = await axios.post(
         "http://192.168.1.35:3001/user/sign-in",
@@ -51,28 +63,32 @@ export const login = createAsyncThunk(
           username,
           password,
         },
-      )  
+      )
+      localStorage.setItem("accessToken", response.data.accessToken)
+      callback()
       return response.data
     } catch (error: any) {
       throw error.response.data
     }
   },
 )
-export const logout = createAsyncThunk('auth/logout', async () => {
-  await
-  localStorage.removeItem('accessToken'); // xóa token ở local storage
-});
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async ({ callback }: { callback: () => void }) => {
+    await localStorage.removeItem("accessToken") // xóa token ở local storage
+    callback()
+  },
+)
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(registerUser.pending, (state) => {
         state.loading = true
-        state.successMessage = null; //
+        state.successMessage = null //
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false
@@ -82,7 +98,7 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false
-        state.token = null
+        state.token = ""
         // state.error = action.payload.message ;
       })
       //login user
@@ -92,11 +108,7 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false
-        state.isAuthenticated = true
-        state.user = action.payload.user
-        // Lưu token vào local storage
-        localStorage.setItem("accessToken", action.payload.accessToken)
-        state.token = action.payload
+        state.token = action.payload.accessToken
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false
@@ -104,19 +116,16 @@ const authSlice = createSlice({
       })
       //logout
       .addCase(logout.pending, (state) => {
-        state.loading = true;
+        state.loading = true
       })
       .addCase(logout.fulfilled, (state) => {
-        state.loading = false;
-        state.token = null;
-        state.isAuthenticated = false;
+        state.loading = false
+        state.token = ""
       })
       .addCase(logout.rejected, (state, action) => {
-        state.loading = false;
-      });
-     
+        state.loading = false
+      })
   },
 })
 
 export default authSlice.reducer
-

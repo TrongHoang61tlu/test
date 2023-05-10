@@ -1,26 +1,21 @@
-import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import React from "react"
+import { useNavigate } from "react-router-dom"
+import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import { RootState } from "../../app/store"
 import { login } from "./authSlice"
-import { useNavigate } from "react-router-dom"
 
 function Login() {
   const [username, setUsername] = React.useState("")
   const [password, setPassword] = React.useState("")
-  const isAuthenticated = useAppSelector((state: RootState) => state.auth.isAuthenticated)
+
   const error = useAppSelector((state: RootState) => state.auth.error)
   const dispatch = useAppDispatch()
   const history = useNavigate()
 
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    dispatch(login({ username, password }))
+    dispatch(login({ username, password, callback: () => history("/") }))
   }
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      history("/")
-    }
-  }, [isAuthenticated])
   return (
     <div className="flex h-screen flex-col justify-center px-6 py-12 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">

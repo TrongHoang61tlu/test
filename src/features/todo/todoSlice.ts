@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import axios from "axios"
 import { RootState } from "../../app/store"
 
@@ -33,7 +33,6 @@ export const fetchTodos = createAsyncThunk("todos/fetchTodos", async () => {
       },
     },
   )
- 
 
   return response.data.data
 })
@@ -71,8 +70,6 @@ export const deleteTodo = createAsyncThunk(
           },
         },
       )
-      // console.log(response);
-
       return _id
     } catch (error: any) {
       return rejectWithValue(error.response.data)
@@ -80,10 +77,7 @@ export const deleteTodo = createAsyncThunk(
   },
 )
 
-export const updateTodo = createAsyncThunk(
-  "todos/updateTodo",
-  async () => {},
-)
+export const updateTodo = createAsyncThunk("todos/updateTodo", async () => {})
 
 const todosSlice = createSlice({
   name: "todos",
@@ -123,9 +117,7 @@ const todosSlice = createSlice({
       })
       .addCase(deleteTodo.fulfilled, (state, action) => {
         state.loading = false
-        state.todos = state.todos.filter(
-          (todo) => todo?._id !== action.payload,
-        )
+        state.todos = state.todos.filter((todo) => todo?._id !== action.payload)
       })
       .addCase(deleteTodo.rejected, (state, action) => {
         state.loading = false
@@ -133,9 +125,5 @@ const todosSlice = createSlice({
       })
   },
 })
-
-// export const selectTodos = (state: RootState) => state.todos.todos;
-// export const selectTodosLoading = (state: RootState) => state.todos.loading;
-// export const selectTodosError = (state: RootState) => state.todos.error;
 
 export default todosSlice.reducer
