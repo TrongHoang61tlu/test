@@ -2,43 +2,58 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import axios from "axios"
 
 interface AuthState {
-  token: string
+  isLogin: boolean
   loading: boolean
   error: null | string
-  user: UserCredentials
   successMessage: null | string
 }
 
 interface UserCredentials {
   username: string
   password: string
-  token: string | null
 }
 
 const initialState: AuthState = {
-  token: "",
+  isLogin: false,
   loading: false,
   error: null,
-  user: {
-    username: "",
-    password: "",
-    token: null,
-  },
   successMessage: null,
+}
+
+export const getToken = (): string | null => {
+  return localStorage.getItem("accessToken")
+}
+export const checkToken = () => (dispatch: any) => {
+  const token = getToken()
+  if (token) {
+    dispatch(authSlice.actions.setLogin())
+  } else {
+    dispatch(authSlice.actions.setLogout())
+  }
+}
+
+const saveAccessTokenToLocalStorage = (accessToken: string) => {
+  localStorage.setItem("accessToken", accessToken)
+}
+
+const removeAccessTokenFromLocalStorage = () => {
+  localStorage.removeItem("accessToken")
 }
 
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (
-    { username, password }: { username: string; password: string },
+    { formData, callback }: { formData: UserCredentials; callback: () => void },
     { rejectWithValue },
   ) => {
+    const { username, password } = formData
     try {
       const response = await axios.post("http://192.168.1.35:3001/user", {
         username,
         password,
       })
-      return response.data.token
+      callback()
+      return response.data
     } catch (err: any) {
       return rejectWithValue(err.response.data)
     }
@@ -48,14 +63,13 @@ export const registerUser = createAsyncThunk(
 export const login = createAsyncThunk(
   "auth/login",
   async ({
-    username,
-    password,
+    formData,
     callback,
   }: {
-    username: string
-    password: string
+    formData: UserCredentials
     callback: () => void
   }) => {
+    const { username, password } = formData
     try {
       const response = await axios.post(
         "http://192.168.1.35:3001/user/sign-in",
@@ -64,7 +78,7 @@ export const login = createAsyncThunk(
           password,
         },
       )
-      localStorage.setItem("accessToken", response.data.accessToken)
+      saveAccessTokenToLocalStorage(response.data.accessToken)
       callback()
       return response.data
     } catch (error: any) {
@@ -72,10 +86,11 @@ export const login = createAsyncThunk(
     }
   },
 )
+
 export const logout = createAsyncThunk(
   "auth/logout",
-  async ({ callback }: { callback: () => void }) => {
-    await localStorage.removeItem("accessToken") // xóa token ở local storage
+  async (callback: () => void) => {
+    await removeAccessTokenFromLocalStorage()
     callback()
   },
 )
@@ -83,7 +98,14 @@ export const logout = createAsyncThunk(
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {},
+  reducers: {
+    setLogin(state) {
+      state.isLogin = true
+    },
+    setLogout(state) {
+      state.isLogin = false
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(registerUser.pending, (state) => {
@@ -92,13 +114,12 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false
-        state.token = action.payload
         state.error = null
-        state.successMessage = "Đăng ký thành công"
+        state.successMessage = "Login successful"
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false
-        state.token = ""
+        state.isLogin = false
         // state.error = action.payload.message ;
       })
       //login user
@@ -108,19 +129,20 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false
-        state.token = action.payload.accessToken
+        state.isLogin = true
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false
         // state.error = action.error.message;
       })
+
       //logout
       .addCase(logout.pending, (state) => {
         state.loading = true
       })
       .addCase(logout.fulfilled, (state) => {
         state.loading = false
-        state.token = ""
+        state.isLogin = false
       })
       .addCase(logout.rejected, (state, action) => {
         state.loading = false

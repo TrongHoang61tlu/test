@@ -3,19 +3,44 @@ import { useNavigate } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import { RootState } from "../../app/store"
 import { login } from "./authSlice"
+import * as yup from "yup"
+import { useForm } from "react-hook-form"
+import { yupResolver } from "@hookform/resolvers/yup"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
+const schema = yup.object().shape({
+  username: yup.string().required("Username is required"),
+  password: yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+});
 
 function Login() {
-  const [username, setUsername] = React.useState("")
-  const [password, setPassword] = React.useState("")
 
   const error = useAppSelector((state: RootState) => state.auth.error)
   const dispatch = useAppDispatch()
-  const history = useNavigate()
+  const redirectHome = useNavigate()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    dispatch(login({ username, password, callback: () => history("/") }))
+
+  const handleLogin = (data: any) => {
+    const formData = data 
+    try {
+      
+      dispatch(login({formData , callback: () => redirectHome("/") }));
+      toast.success("Đăng nhập thành công")
+    } catch (error) {
+      toast.error("Đăng nhập thất bại")
+    }
   }
+  
   return (
     <div className="flex h-screen flex-col justify-center px-6 py-12 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
@@ -30,7 +55,7 @@ function Login() {
       </div>
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
         <form
-          onSubmit={handleLogin}
+          onSubmit={handleSubmit(handleLogin)}
           className="space-y-6"
           action="#"
           method="POST"
@@ -38,19 +63,16 @@ function Login() {
           {error && <div className="error">{error}</div>}
           <div>
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="block text-sm font-medium leading-6 text-gray-900"
             >
-              Email address
+              User name
             </label>
             <div className="mt-2">
               <input
+                {...register("username")}
+                placeholder="username"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                id="username"
-                name="username"
-                autoComplete="username"
                 required
                 className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
@@ -75,12 +97,9 @@ function Login() {
             </div>
             <div className="mt-2">
               <input
+                {...register("password")}
+                placeholder="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                id="password"
-                name="password"
-                autoComplete="current-password"
                 required
                 className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />

@@ -1,13 +1,14 @@
 import { Link, useNavigate } from "react-router-dom"
-import { useAppDispatch } from "../../../app/hooks"
+import { useAppDispatch, useAppSelector } from "../../../app/hooks"
 import { logout } from "../../../features/auth/authSlice"
+import { RootState } from "../../../app/store"
 const Header = () => {
   const dispatch = useAppDispatch()
-  const history = useNavigate()
-  const token = localStorage.getItem("accessToken")
+  const navigate = useNavigate()
+  const isLogin =  useAppSelector((state: RootState) => state.auth.isLogin)
 
   const handleLogout = () => {
-    dispatch(logout({ callback: () => history("/login") }))
+    dispatch(logout( () => navigate("/login") ))
   }
   return (
     <header className="flex items-center justify-between px-4 py-2 bg-gray-800 text-white">
@@ -15,7 +16,7 @@ const Header = () => {
         <h1 className="text-xl font-bold">Todo List</h1>
       </Link>
       <div>
-        {token ? (
+        {isLogin ? (
           <button
             onClick={handleLogout}
             className="px-4 py-2 text-white bg-green-500 rounded mr-4 hover:bg-green-600"

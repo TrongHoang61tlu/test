@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"
+import { toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
-import { addTodo, deleteTodo, fetchTodos } from "./todoSlice"
 import { RootState } from "../../app/store"
+import { addTodo, deleteTodo, fetchTodos } from "./todoSlice"
 
 interface TodoItem {
   _id: string
@@ -23,8 +25,6 @@ function Home() {
   const dispatch = useAppDispatch()
   const todos = useAppSelector((state: RootState) => state.todo.todos)
   const [title, setTitle] = useState("")
-  console.log(todos);
-  
 
   useEffect(() => {
     dispatch(fetchTodos())
@@ -33,15 +33,24 @@ function Home() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (title) {
-      dispatch(addTodo({ title }))
-      setTitle("")
+      try {
+        dispatch(addTodo({ title }))
+        setTitle("")
+        toast.success("Thêm thành công")
+      } catch (error) {
+        toast.error("Thêm thất bại")
+      }
     }
   }
 
   const handleDeleteTodo = (_id: string) => {
-    dispatch(deleteTodo(_id))
+    try {
+      dispatch(deleteTodo(_id))
+      toast.success("Đã xóa thành công")
+    } catch (error) {
+      toast.error("Đã xảy ra lỗi trong quá trình xóa")
+    }
   }
-
 
   return (
     <div className=" h-screen container mx-auto p-4">
@@ -69,7 +78,7 @@ function Home() {
             {todos &&
               typeof todos === "object" &&
               todos?.map((data: any, index) => (
-                <li className="flex items-center py-2">
+                <li className="flex items-center py-2" key={index}>
                   <label htmlFor="todo2" className="ml-2 block text-gray-900">
                     {data.title}
                   </label>
