@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import axios from "axios"
+import { toast } from "react-toastify"
 
 interface AuthState {
   isLogin: boolean
@@ -43,8 +44,7 @@ const removeAccessTokenFromLocalStorage = () => {
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (
-    { formData, callback }: { formData: UserCredentials; callback: () => void },
-    { rejectWithValue },
+     formData : UserCredentials
   ) => {
     const { username, password } = formData
     try {
@@ -52,23 +52,17 @@ export const registerUser = createAsyncThunk(
         username,
         password,
       })
-      callback()
+      toast.success("Đăng ký thành công")
       return response.data
     } catch (err: any) {
-      return rejectWithValue(err.response.data)
+      toast.error("Đăng ký thất bại")
     }
   },
 )
 
 export const login = createAsyncThunk(
   "auth/login",
-  async ({
-    formData,
-    callback,
-  }: {
-    formData: UserCredentials
-    callback: () => void
-  }) => {
+  async (formData: UserCredentials) => {
     const { username, password } = formData
     try {
       const response = await axios.post(
@@ -79,10 +73,10 @@ export const login = createAsyncThunk(
         },
       )
       saveAccessTokenToLocalStorage(response.data.accessToken)
-      callback()
+      toast.success("Đăng nhập thành công")
       return response.data
     } catch (error: any) {
-      throw error.response.data
+      toast.error("Tài khoản hoặc mật khẩu không đúng!")
     }
   },
 )

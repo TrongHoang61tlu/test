@@ -78,7 +78,7 @@ function Home() {
             {todos &&
               typeof todos === "object" &&
               todos?.map((data: any, index) => (
-                <li className="flex items-center py-2" key={index}>
+                <li className="flex items-center py-2" key={data._id}>
                   <label htmlFor="todo2" className="ml-2 block text-gray-900">
                     {data.title}
                   </label>

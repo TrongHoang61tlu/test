@@ -6,20 +6,20 @@ import { login } from "./authSlice"
 import * as yup from "yup"
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
+import { toast } from "react-toastify"
 
 const schema = yup.object().shape({
   username: yup.string().required("Username is required"),
-  password: yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
-});
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+})
 
 function Login() {
-
   const error = useAppSelector((state: RootState) => state.auth.error)
   const dispatch = useAppDispatch()
-  const redirectHome = useNavigate()
+  const redirect = useNavigate()
   const {
     register,
     handleSubmit,
@@ -27,20 +27,18 @@ function Login() {
     reset,
   } = useForm({
     resolver: yupResolver(schema),
-  });
+  })
 
-
-  const handleLogin = (data: any) => {
-    const formData = data 
+  const handleLogin = async (data: any) => {
+    const formData = data
     try {
-      
-      dispatch(login({formData , callback: () => redirectHome("/") }));
-      toast.success("Đăng nhập thành công")
+      await dispatch(login(formData))
+      redirect("/")
     } catch (error) {
       toast.error("Đăng nhập thất bại")
     }
   }
-  
+
   return (
     <div className="flex h-screen flex-col justify-center px-6 py-12 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">

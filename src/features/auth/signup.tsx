@@ -3,7 +3,6 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
 import * as yup from "yup"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import { RootState } from "../../app/store"
@@ -19,8 +18,6 @@ const schema = yup.object().shape({
 
 function Signup() {
   const dispatch = useAppDispatch()
-  const [password, setPassword] = useState("")
-  const [username, setUsername] = useState("")
   const loading = useAppSelector((state: RootState) => state.auth.loading)
   const mess = useAppSelector((state: RootState) => state.auth.successMessage)
   const {
@@ -38,13 +35,9 @@ function Signup() {
     const formData = data
     try {
       // Thực hiện đăng ký
-      dispatch(
-        registerUser({ formData, callback: () => redirectLogin("/login") }),
-      )
-      toast.success("Đăng ký thành công!")
-      setTimeout(() => {
-        redirectLogin("/login")
-      }, 2000)
+      dispatch(registerUser(formData))
+
+      redirectLogin("/login")
     } catch (error: any) {
       // Xử lý lỗi và hiển thị thông báo lỗi
       toast.error("Đăng ký thất bại: " + error.message)
