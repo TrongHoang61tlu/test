@@ -1,18 +1,36 @@
-import { useState } from "react"
+import { yupResolver } from "@hookform/resolvers/yup"
+import { useForm } from "react-hook-form"
+import { useNavigate } from "react-router-dom"
+import * as yup from "yup"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import { RootState } from "../../app/store"
 import { registerUser } from "./authSlice"
 
+const schema = yup.object().shape({
+  username: yup.string().required("Username is required"),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+})
+
 function Signup() {
   const dispatch = useAppDispatch()
-  const [password, setPassword] = useState("")
-  const [username, setUsername] = useState("")
   const loading = useAppSelector((state: RootState) => state.auth.loading)
   const mess = useAppSelector((state: RootState) => state.auth.successMessage)
+  const redirect = useNavigate()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: yupResolver(schema),
+  })
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    dispatch(registerUser({ username, password }))
+  const handleSignup = (data: any) => {
+    const formData = data
+    dispatch(registerUser({ formData, callback: () => redirect("/login") }))
   }
 
   return (
@@ -29,7 +47,7 @@ function Signup() {
       </div>
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(handleSignup)}
           className="space-y-6"
           action="#"
           method="POST"
@@ -53,15 +71,14 @@ function Signup() {
             </label>
             <div className="mt-2">
               <input
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                disabled={loading}
+                {...register("username")}
+                placeholder="username"
+                type="text"
                 required
                 id="username"
                 name="username"
-                type="text"
                 autoComplete="username"
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
             </div>
           </div>
@@ -76,15 +93,12 @@ function Signup() {
             </div>
             <div className="mt-2">
               <input
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                disabled={loading}
-                id="password"
-                name="password"
+                {...register("password")}
+                placeholder="password"
                 type="password"
-                autoComplete="current-password"
                 required
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                autoComplete="current-password"
+                className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
             </div>
           </div>

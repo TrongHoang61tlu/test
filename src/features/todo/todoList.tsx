@@ -1,23 +1,7 @@
 import { useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
-import { addTodo, deleteTodo, fetchTodos } from "./todoSlice"
 import { RootState } from "../../app/store"
-
-interface TodoItem {
-  _id: string
-  created_at: string
-  created_by: {
-    _id: string
-    username: string
-  }
-  is_finished: boolean
-  title: string
-  __v: number
-}
-
-interface TodoData {
-  data: TodoItem[]
-}
+import { addTodo, deleteTodo, fetchTodos } from "./todoSlice"
 
 function Home() {
   const dispatch = useAppDispatch()
@@ -66,7 +50,7 @@ function Home() {
             {todos &&
               typeof todos === "object" &&
               todos?.map((data: any, index) => (
-                <li className="flex items-center py-2">
+                <li className="flex items-center py-2" key={data._id}>
                   <label htmlFor="todo2" className="ml-2 block text-gray-900">
                     {data.title}
                   </label>

@@ -1,6 +1,7 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
-import axios from "axios"
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
+import { toast } from "react-toastify"
 import { RootState } from "../../app/store"
+import axiosInstance from "../../services/axiosInstance"
 
 interface Todo {
   _id: string
@@ -24,17 +25,7 @@ const initialState: TodosState = {
 }
 
 export const fetchTodos = createAsyncThunk("todos/fetchTodos", async () => {
-  const response = await axios.get(
-    "http://192.168.1.35:3001/todo",
-
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    },
-  )
- 
-
+  const response = await axiosInstance.get("/todo")
   return response.data.data
 })
 
@@ -43,47 +34,34 @@ export const addTodo = createAsyncThunk<
   AddTodoRequest,
   { state: RootState }
 >("todos/addTodo", async (todoData, { getState }) => {
-  const response = await axios.post<Todo>(
-    "http://192.168.1.35:3001/todo",
-    {
+  try {
+    const response = await axiosInstance.post<Todo>("/todo", {
       title: todoData.title,
       completed: false,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    },
-  )
-
-  return response.data
+    })
+    toast.success("Thêm thành công")
+    return response.data
+  } catch (error) {
+    toast.error("Thêm thất bại")
+    throw error
+  }
 })
 
 export const deleteTodo = createAsyncThunk(
   "todos/deleteTodo",
-  async (_id: string, { rejectWithValue, getState }) => {
+  async (_id: string) => {
     try {
-      const response = await axios.delete(
-        `http://192.168.1.35:3001/todo/${_id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        },
-      )
-      // console.log(response);
-
+      const response = await axiosInstance.delete(`/todo/${_id}`)
+      toast.success("Đã xóa thành công")
       return _id
     } catch (error: any) {
-      return rejectWithValue(error.response.data)
+      toast.error("Đã xảy ra lỗi trong quá trình xóa")
+      throw error
     }
   },
 )
 
-export const updateTodo = createAsyncThunk(
-  "todos/updateTodo",
-  async () => {},
-)
+export const updateTodo = createAsyncThunk("todos/updateTodo", async () => {})
 
 const todosSlice = createSlice({
   name: "todos",
@@ -123,9 +101,7 @@ const todosSlice = createSlice({
       })
       .addCase(deleteTodo.fulfilled, (state, action) => {
         state.loading = false
-        state.todos = state.todos.filter(
-          (todo) => todo?._id !== action.payload,
-        )
+        state.todos = state.todos.filter((todo) => todo?._id !== action.payload)
       })
       .addCase(deleteTodo.rejected, (state, action) => {
         state.loading = false
@@ -133,9 +109,5 @@ const todosSlice = createSlice({
       })
   },
 })
-
-// export const selectTodos = (state: RootState) => state.todos.todos;
-// export const selectTodosLoading = (state: RootState) => state.todos.loading;
-// export const selectTodosError = (state: RootState) => state.todos.error;
 
 export default todosSlice.reducer

@@ -1,31 +1,22 @@
 import { Link, useNavigate } from "react-router-dom"
-import { RootState } from "../../../app/store"
 import { useAppDispatch, useAppSelector } from "../../../app/hooks"
-import  { logout } from "../../../features/auth/authSlice"
-import React from "react"
+import { logout } from "../../../features/auth/authSlice"
+import { RootState } from "../../../app/store"
 const Header = () => {
   const dispatch = useAppDispatch()
-  const history = useNavigate()
-  const isAuthenticated = useAppSelector(
-    (state: RootState) => state.auth.isAuthenticated,
-  )
-  const token = localStorage.getItem('accessToken')
+  const navigate = useNavigate()
+  const isLogin =  useAppSelector((state: RootState) => state.auth.isLogin)
 
   const handleLogout = () => {
-    dispatch(logout())
+    dispatch(logout( () => navigate("/login") ))
   }
-  React.useEffect(() => {
-    if (isAuthenticated === false) {
-      history("/login")
-    }
-  }, [isAuthenticated])
   return (
     <header className="flex items-center justify-between px-4 py-2 bg-gray-800 text-white">
       <Link to="/">
         <h1 className="text-xl font-bold">Todo List</h1>
       </Link>
       <div>
-        {token ? (
+        {isLogin ? (
           <button
             onClick={handleLogout}
             className="px-4 py-2 text-white bg-green-500 rounded mr-4 hover:bg-green-600"

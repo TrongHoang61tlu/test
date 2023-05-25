@@ -1,88 +1,134 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
-import axios from "axios"
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
+import { toast } from "react-toastify"
+import axiosInstance from "../../services/axiosInstance"
 
 interface AuthState {
-  token: string | null
+  isLogin: boolean
   loading: boolean
   error: null | string
-  user: UserCredentials
   successMessage: null | string
-  isAuthenticated: boolean
 }
 
 interface UserCredentials {
   username: string
   password: string
-  token: string | null
 }
 
 const initialState: AuthState = {
-  token: null,
+  isLogin: false,
   loading: false,
   error: null,
-  user: {
-    username: '',
-    password: '',
-    token: null
-  },
   successMessage: null,
-  isAuthenticated: false
+}
+
+export const getToken = (): string | null => {
+  return localStorage.getItem("accessToken")
+}
+
+export const checkToken = () => (dispatch: any) => {
+  const token = getToken()
+  if (token) {
+    dispatch(authSlice.actions.setLogin())
+  } else {
+    dispatch(authSlice.actions.setLogout())
+  }
+}
+
+const saveAccessTokenToLocalStorage = (accessToken: string) => {
+  localStorage.setItem("accessToken", accessToken)
+}
+
+const removeAccessTokenFromLocalStorage = () => {
+  localStorage.removeItem("accessToken")
 }
 
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
-  async (data: UserCredentials, { rejectWithValue }) => {
+  async ({
+    formData,
+    callback,
+  }: {
+    formData: UserCredentials
+    callback: () => void
+  }) => {
+    const { username, password } = formData
     try {
-      const response = await axios.post("http://192.168.1.35:3001/user", data)
-      return response.data.token
+      const response = await axiosInstance.post("/user", {
+        username,
+        password,
+      })
+      callback()
+      toast.success("Đăng ký thành công")
+      return response.data
     } catch (err: any) {
-      return rejectWithValue(err.response.data)
+      toast.error("Đăng ký thất bại")
+      throw err
     }
   },
 )
 
 export const login = createAsyncThunk(
   "auth/login",
-  async ({ username, password }: { username: string; password: string }) => {
+  async ({
+    formData,
+    callback,
+  }: {
+    formData: UserCredentials
+    callback: () => void
+  }) => {
+    const { username, password } = formData
     try {
-      const response = await axios.post(
-        "http://192.168.1.35:3001/user/sign-in",
+      const response = await axiosInstance.post(
+        "/user/sign-in",
         {
           username,
           password,
         },
-      )  
+      )
+      saveAccessTokenToLocalStorage(response.data.accessToken)
+      toast.success("Đăng nhập thành công")
+      callback()
       return response.data
     } catch (error: any) {
-      throw error.response.data
+      toast.error("Tài khoản hoặc mật khẩu không đúng!")
+      throw error
     }
   },
 )
-export const logout = createAsyncThunk('auth/logout', async () => {
-  await
-  localStorage.removeItem('accessToken'); // xóa token ở local storage
-});
+
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (callback: () => void) => {
+    removeAccessTokenFromLocalStorage()
+    callback()
+  },
+)
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    setLogin(state) {
+      state.isLogin = true
+    },
+    setLogout(state) {
+      state.isLogin = false
+    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(registerUser.pending, (state) => {
         state.loading = true
-        state.successMessage = null; //
+        state.successMessage = null //
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false
-        state.token = action.payload
         state.error = null
-        state.successMessage = "Đăng ký thành công"
+        state.successMessage = "Login successful"
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false
-        state.token = null
+        state.isLogin = false
         // state.error = action.payload.message ;
       })
       //login user
@@ -92,31 +138,25 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false
-        state.isAuthenticated = true
-        state.user = action.payload.user
-        // Lưu token vào local storage
-        localStorage.setItem("accessToken", action.payload.accessToken)
-        state.token = action.payload
+        state.isLogin = true
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false
-        // state.error = action.error.message;
+        state.isLogin = false
+        state.error = "Lỗi đăng nhập"
       })
       //logout
       .addCase(logout.pending, (state) => {
-        state.loading = true;
+        state.loading = true
       })
       .addCase(logout.fulfilled, (state) => {
-        state.loading = false;
-        state.token = null;
-        state.isAuthenticated = false;
+        state.loading = false
+        state.isLogin = false
       })
       .addCase(logout.rejected, (state, action) => {
-        state.loading = false;
-      });
-     
+        state.loading = false
+      })
   },
 })
 
 export default authSlice.reducer
-
