@@ -1,8 +1,6 @@
 import { yupResolver } from "@hookform/resolvers/yup"
-import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
-import { toast } from "react-toastify"
 import * as yup from "yup"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import { RootState } from "../../app/store"
@@ -20,6 +18,7 @@ function Signup() {
   const dispatch = useAppDispatch()
   const loading = useAppSelector((state: RootState) => state.auth.loading)
   const mess = useAppSelector((state: RootState) => state.auth.successMessage)
+  const redirect = useNavigate()
   const {
     register,
     handleSubmit,
@@ -29,19 +28,9 @@ function Signup() {
     resolver: yupResolver(schema),
   })
 
-  const redirectLogin = useNavigate()
-
-  const handleSignup = async (data: any) => {
+  const handleSignup = (data: any) => {
     const formData = data
-    try {
-      // Thực hiện đăng ký
-      dispatch(registerUser(formData))
-
-      redirectLogin("/login")
-    } catch (error: any) {
-      // Xử lý lỗi và hiển thị thông báo lỗi
-      toast.error("Đăng ký thất bại: " + error.message)
-    }
+    dispatch(registerUser({ formData, callback: () => redirect("/login") }))
   }
 
   return (

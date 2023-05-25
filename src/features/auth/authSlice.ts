@@ -24,6 +24,7 @@ const initialState: AuthState = {
 export const getToken = (): string | null => {
   return localStorage.getItem("accessToken")
 }
+
 export const checkToken = () => (dispatch: any) => {
   const token = getToken()
   if (token) {
@@ -43,26 +44,38 @@ const removeAccessTokenFromLocalStorage = () => {
 
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
-  async (
-     formData : UserCredentials
-  ) => {
+  async ({
+    formData,
+    callback,
+  }: {
+    formData: UserCredentials
+    callback: () => void
+  }) => {
     const { username, password } = formData
     try {
       const response = await axios.post("http://192.168.1.35:3001/user", {
         username,
         password,
       })
+      callback()
       toast.success("Đăng ký thành công")
       return response.data
     } catch (err: any) {
       toast.error("Đăng ký thất bại")
+      throw err
     }
   },
 )
 
 export const login = createAsyncThunk(
   "auth/login",
-  async (formData: UserCredentials) => {
+  async ({
+    formData,
+    callback,
+  }: {
+    formData: UserCredentials
+    callback: () => void
+  }) => {
     const { username, password } = formData
     try {
       const response = await axios.post(
@@ -74,9 +87,11 @@ export const login = createAsyncThunk(
       )
       saveAccessTokenToLocalStorage(response.data.accessToken)
       toast.success("Đăng nhập thành công")
+      callback()
       return response.data
     } catch (error: any) {
       toast.error("Tài khoản hoặc mật khẩu không đúng!")
+      throw error
     }
   },
 )
@@ -84,7 +99,7 @@ export const login = createAsyncThunk(
 export const logout = createAsyncThunk(
   "auth/logout",
   async (callback: () => void) => {
-    await removeAccessTokenFromLocalStorage()
+    removeAccessTokenFromLocalStorage()
     callback()
   },
 )
@@ -127,9 +142,9 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false
-        // state.error = action.error.message;
+        state.isLogin = false
+        state.error = "Lỗi đăng nhập"
       })
-
       //logout
       .addCase(logout.pending, (state) => {
         state.loading = true

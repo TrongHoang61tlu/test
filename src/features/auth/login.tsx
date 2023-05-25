@@ -1,12 +1,10 @@
-import React from "react"
+import { yupResolver } from "@hookform/resolvers/yup"
+import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
+import * as yup from "yup"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import { RootState } from "../../app/store"
 import { login } from "./authSlice"
-import * as yup from "yup"
-import { useForm } from "react-hook-form"
-import { yupResolver } from "@hookform/resolvers/yup"
-import { toast } from "react-toastify"
 
 const schema = yup.object().shape({
   username: yup.string().required("Username is required"),
@@ -29,14 +27,9 @@ function Login() {
     resolver: yupResolver(schema),
   })
 
-  const handleLogin = async (data: any) => {
+  const handleLogin = (data: any) => {
     const formData = data
-    try {
-      await dispatch(login(formData))
-      redirect("/")
-    } catch (error) {
-      toast.error("Đăng nhập thất bại")
-    }
+    dispatch(login({ formData, callback: () => redirect("/") }))
   }
 
   return (

@@ -1,25 +1,8 @@
 import { useEffect, useState } from "react"
 import { toast } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import { RootState } from "../../app/store"
 import { addTodo, deleteTodo, fetchTodos } from "./todoSlice"
-
-interface TodoItem {
-  _id: string
-  created_at: string
-  created_by: {
-    _id: string
-    username: string
-  }
-  is_finished: boolean
-  title: string
-  __v: number
-}
-
-interface TodoData {
-  data: TodoItem[]
-}
 
 function Home() {
   const dispatch = useAppDispatch()
