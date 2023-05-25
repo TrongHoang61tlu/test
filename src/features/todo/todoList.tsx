@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { toast } from "react-toastify"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import { RootState } from "../../app/store"
 import { addTodo, deleteTodo, fetchTodos } from "./todoSlice"
@@ -16,23 +15,13 @@ function Home() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (title) {
-      try {
-        dispatch(addTodo({ title }))
-        setTitle("")
-        toast.success("Thêm thành công")
-      } catch (error) {
-        toast.error("Thêm thất bại")
-      }
+      dispatch(addTodo({ title }))
+      setTitle("")
     }
   }
 
   const handleDeleteTodo = (_id: string) => {
-    try {
-      dispatch(deleteTodo(_id))
-      toast.success("Đã xóa thành công")
-    } catch (error) {
-      toast.error("Đã xảy ra lỗi trong quá trình xóa")
-    }
+    dispatch(deleteTodo(_id))
   }
 
   return (

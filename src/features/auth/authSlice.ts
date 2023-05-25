@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
-import axios from "axios"
 import { toast } from "react-toastify"
+import axiosInstance from "../../services/axiosInstance"
 
 interface AuthState {
   isLogin: boolean
@@ -53,7 +53,7 @@ export const registerUser = createAsyncThunk(
   }) => {
     const { username, password } = formData
     try {
-      const response = await axios.post("http://192.168.1.35:3001/user", {
+      const response = await axiosInstance.post("/user", {
         username,
         password,
       })
@@ -78,8 +78,8 @@ export const login = createAsyncThunk(
   }) => {
     const { username, password } = formData
     try {
-      const response = await axios.post(
-        "http://192.168.1.35:3001/user/sign-in",
+      const response = await axiosInstance.post(
+        "/user/sign-in",
         {
           username,
           password,
